@@ -11,7 +11,7 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/Uniswap/uniswap-v3-sdk.git",
+  "repository": "https://github.com/haode-v/v3-sdk.git",
   "keywords": [
     "uniswap",
     "ethereum"
@@ -26,7 +26,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.0.12",
     "@ethersproject/solidity": "^5.0.9",
-    "@uniswap/sdk-core": "https://github.com/haode-gg/sdk-core.git",
+    "@uniswap/sdk-core": "https://github.com/haode-v/sdk-core.git",
     "@uniswap/v3-periphery": "1.0.0",
     "tiny-invariant": "^1.1.0",
     "tiny-warning": "^1.0.3"
