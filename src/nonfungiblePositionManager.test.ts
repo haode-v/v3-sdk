@@ -1,4 +1,4 @@
-import { ChainId, Percent, Token, CurrencyAmount, WETH9 } from '@uniswap/sdk-core'
+import { Percent, Token, CurrencyAmount, WETH9, Ether } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { Position } from './entities/position'
@@ -6,13 +6,13 @@ import { NonfungiblePositionManager } from './nonfungiblePositionManager'
 import { encodeSqrtRatioX96 } from './utils/encodeSqrtRatioX96'
 
 describe('NonfungiblePositionManager', () => {
-  const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
-  const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
+  const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
+  const token1 = new Token(1, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
 
   const fee = FeeAmount.MEDIUM
 
   const pool_0_1 = new Pool(token0, token1, fee, encodeSqrtRatioX96(1, 1), 0, 0, [])
-  const pool_1_weth = new Pool(token1, WETH9[ChainId.MAINNET], fee, encodeSqrtRatioX96(1, 1), 0, 0, [])
+  const pool_1_weth = new Pool(token1, WETH9[1], fee, encodeSqrtRatioX96(1, 1), 0, 0, [])
 
   const recipient = '0x0000000000000000000000000000000000000003'
   const tokenId = 1
@@ -34,7 +34,7 @@ describe('NonfungiblePositionManager', () => {
       ).toThrow('ZERO_LIQUIDITY')
     })
 
-    it('throws if pool does not involve ether and useEther is true', () => {
+    it('throws if pool does not involve ether and useNative is true', () => {
       expect(() =>
         NonfungiblePositionManager.addCallParameters(
           new Position({
@@ -43,7 +43,7 @@ describe('NonfungiblePositionManager', () => {
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
             liquidity: 1
           }),
-          { recipient, slippageTolerance, deadline, useEther: true }
+          { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
         )
       ).toThrow('NO_WETH')
     })
@@ -99,7 +99,7 @@ describe('NonfungiblePositionManager', () => {
       expect(value).toEqual('0x00')
     })
 
-    it('useEther', () => {
+    it('useNative', () => {
       const { calldata, value } = NonfungiblePositionManager.addCallParameters(
         new Position({
           pool: pool_1_weth,
@@ -107,7 +107,7 @@ describe('NonfungiblePositionManager', () => {
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
           liquidity: 1
         }),
-        { recipient, slippageTolerance, deadline, useEther: true }
+        { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
       )
 
       expect(calldata).toEqual(
@@ -136,7 +136,7 @@ describe('NonfungiblePositionManager', () => {
       const { calldata, value } = NonfungiblePositionManager.collectCallParameters({
         tokenId,
         expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token1, 0),
-        expectedCurrencyOwed1: CurrencyAmount.ether(0),
+        expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(Ether.onChain(1), 0),
         recipient
       })
 
@@ -276,7 +276,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works with eth', () => {
-      const ethAmount = CurrencyAmount.ether(0)
+      const ethAmount = CurrencyAmount.fromRawAmount(Ether.onChain(1), 0)
       const tokenAmount = CurrencyAmount.fromRawAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(
@@ -306,7 +306,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works for partial with eth', () => {
-      const ethAmount = CurrencyAmount.ether(0)
+      const ethAmount = CurrencyAmount.fromRawAmount(Ether.onChain(1), 0)
       const tokenAmount = CurrencyAmount.fromRawAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(

@@ -1,6 +1,6 @@
 export declare const FACTORY_ADDRESS = "0x0227628f3F023bb0B980b67D528571c95c6DaC1c";
 export declare const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
-export declare const POOL_INIT_CODE_HASH = "0xd2517377ef73fc1e39ce1938b04f650a70b13e11cf9f93c309df970abd1b868f";
+export declare const POOL_INIT_CODE_HASH = "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54";
 /**
  * The default factory enabled fee amounts, denominated in hundredths of bips.
  */

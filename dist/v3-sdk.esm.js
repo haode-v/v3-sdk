@@ -1,4 +1,4 @@
-import { MaxUint256, wrappedCurrency, sqrt, Price, CurrencyAmount, Percent, currencyEquals, TradeType, Fraction, computePriceImpact, wrappedCurrencyAmount, sortedInsert, validateAndParseAddress, WETH9 } from '@uniswap/sdk-core';
+import { MaxUint256, sqrt, Price, CurrencyAmount, Percent, TradeType, Fraction, computePriceImpact, sortedInsert, validateAndParseAddress } from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 import invariant from 'tiny-invariant';
 import { defaultAbiCoder, Interface } from '@ethersproject/abi';
@@ -899,7 +899,7 @@ var _TICK_SPACINGS;
 
 var FACTORY_ADDRESS = '0x0227628f3F023bb0B980b67D528571c95c6DaC1c';
 var ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
-var POOL_INIT_CODE_HASH = '0xd2517377ef73fc1e39ce1938b04f650a70b13e11cf9f93c309df970abd1b868f';
+var POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54';
 /**
  * The default factory enabled fee amounts, denominated in hundredths of bips.
  */
@@ -1465,7 +1465,7 @@ function toHex(bigintIsh) {
  */
 
 function encodeRouteToPath(route, exactOutput) {
-  var firstInputToken = wrappedCurrency(route.input, route.chainId);
+  var firstInputToken = route.input.wrapped;
 
   var _route$pools$reduce = route.pools.reduce(function (_ref, pool, index) {
     var inputToken = _ref.inputToken,
@@ -2352,9 +2352,9 @@ var Route = /*#__PURE__*/function () {
       return pool.chainId === chainId;
     });
     !allOnSameChain ? process.env.NODE_ENV !== "production" ? invariant(false, 'CHAIN_IDS') : invariant(false) : void 0;
-    var wrappedInput = wrappedCurrency(input, chainId);
+    var wrappedInput = input.wrapped;
     !pools[0].involvesToken(wrappedInput) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT') : invariant(false) : void 0;
-    !pools[pools.length - 1].involvesToken(wrappedCurrency(output, chainId)) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT') : invariant(false) : void 0;
+    !pools[pools.length - 1].involvesToken(output.wrapped) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT') : invariant(false) : void 0;
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
      * */
@@ -2383,24 +2383,6 @@ var Route = /*#__PURE__*/function () {
       return this.pools[0].chainId;
     }
     /**
-     * Returns the token representation of the input currency. If the input currency is Ether, returns the wrapped ether token.
-     */
-
-  }, {
-    key: "inputToken",
-    get: function get() {
-      return wrappedCurrency(this.input, this.chainId);
-    }
-    /**
-     * Returns the token representation of the output currency. If the output currency is Ether, returns the wrapped ether token.
-     */
-
-  }, {
-    key: "outputToken",
-    get: function get() {
-      return wrappedCurrency(this.output, this.chainId);
-    }
-    /**
      * Returns the mid price of the route
      */
 
@@ -2418,7 +2400,7 @@ var Route = /*#__PURE__*/function () {
           nextInput: pool.token0,
           price: price.multiply(pool.token1Price)
         };
-      }, this.pools[0].token0.equals(this.inputToken) ? {
+      }, this.pools[0].token0.equals(this.input.wrapped) ? {
         nextInput: this.pools[0].token1,
         price: this.pools[0].token0Price
       } : {
@@ -2434,8 +2416,8 @@ var Route = /*#__PURE__*/function () {
 
 function tradeComparator(a, b) {
   // must have same input and output token for comparison
-  !currencyEquals(a.inputAmount.currency, b.inputAmount.currency) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT_CURRENCY') : invariant(false) : void 0;
-  !currencyEquals(a.outputAmount.currency, b.outputAmount.currency) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT_CURRENCY') : invariant(false) : void 0;
+  !a.inputAmount.currency.equals(b.inputAmount.currency) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT_CURRENCY') : invariant(false) : void 0;
+  !a.outputAmount.currency.equals(b.outputAmount.currency) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT_CURRENCY') : invariant(false) : void 0;
 
   if (a.outputAmount.equalTo(b.outputAmount)) {
     if (a.inputAmount.equalTo(b.inputAmount)) {
@@ -2476,8 +2458,8 @@ var Trade = /*#__PURE__*/function () {
         inputAmount = _ref.inputAmount,
         outputAmount = _ref.outputAmount,
         tradeType = _ref.tradeType;
-    !currencyEquals(inputAmount.currency, route.input) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT_CURRENCY_MATCH') : invariant(false) : void 0;
-    !currencyEquals(outputAmount.currency, route.output) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT_CURRENCY_MATCH') : invariant(false) : void 0;
+    !inputAmount.currency.equals(route.input) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT_CURRENCY_MATCH') : invariant(false) : void 0;
+    !outputAmount.currency.equals(route.output) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT_CURRENCY_MATCH') : invariant(false) : void 0;
     this.route = route;
     this.inputAmount = inputAmount;
     this.outputAmount = outputAmount;
@@ -2573,8 +2555,8 @@ var Trade = /*#__PURE__*/function () {
                 break;
               }
 
-              !currencyEquals(amount.currency, route.input) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT') : invariant(false) : void 0;
-              amounts[0] = wrappedCurrencyAmount(amount, route.chainId);
+              !amount.currency.equals(route.input) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INPUT') : invariant(false) : void 0;
+              amounts[0] = amount.wrapped;
               i = 0;
 
             case 5:
@@ -2604,8 +2586,8 @@ var Trade = /*#__PURE__*/function () {
               break;
 
             case 19:
-              !currencyEquals(amount.currency, route.output) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT') : invariant(false) : void 0;
-              amounts[amounts.length - 1] = wrappedCurrencyAmount(amount, route.chainId);
+              !amount.currency.equals(route.output) ? process.env.NODE_ENV !== "production" ? invariant(false, 'OUTPUT') : invariant(false) : void 0;
+              amounts[amounts.length - 1] = amount.wrapped;
               _i = route.tokenPath.length - 1;
 
             case 22:
@@ -2728,7 +2710,7 @@ var Trade = /*#__PURE__*/function () {
   function () {
     var _bestTradeExactIn = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee4(pools, currencyAmountIn, currencyOut, _temp, // used in recursion.
     currentPools, nextAmountIn, bestTrades) {
-      var _ref2, _ref2$maxNumResults, maxNumResults, _ref2$maxHops, maxHops, chainId, amountIn, tokenOut, i, pool, amountOut, _yield$pool$getOutput2, poolsExcludingThisPool;
+      var _ref2, _ref2$maxNumResults, maxNumResults, _ref2$maxHops, maxHops, amountIn, tokenOut, i, pool, amountOut, _yield$pool$getOutput2, poolsExcludingThisPool;
 
       return runtime_1.wrap(function _callee4$(_context4) {
         while (1) {
@@ -2751,100 +2733,98 @@ var Trade = /*#__PURE__*/function () {
               !(pools.length > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'POOLS') : invariant(false) : void 0;
               !(maxHops > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'MAX_HOPS') : invariant(false) : void 0;
               !(currencyAmountIn === nextAmountIn || currentPools.length > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INVALID_RECURSION') : invariant(false) : void 0;
-              chainId = nextAmountIn.currency.isToken ? nextAmountIn.currency.chainId : currencyOut.isToken ? currencyOut.chainId : undefined;
-              !(chainId !== undefined) ? process.env.NODE_ENV !== "production" ? invariant(false, 'CHAIN_ID') : invariant(false) : void 0;
-              amountIn = wrappedCurrencyAmount(nextAmountIn, chainId);
-              tokenOut = wrappedCurrency(currencyOut, chainId);
+              amountIn = nextAmountIn.wrapped;
+              tokenOut = currencyOut.wrapped;
               i = 0;
 
-            case 12:
+            case 10:
               if (!(i < pools.length)) {
-                _context4.next = 48;
+                _context4.next = 46;
                 break;
               }
 
               pool = pools[i]; // pool irrelevant
 
-              if (!(!currencyEquals(pool.token0, amountIn.currency) && !currencyEquals(pool.token1, amountIn.currency))) {
-                _context4.next = 16;
+              if (!(!pool.token0.equals(amountIn.currency) && !pool.token1.equals(amountIn.currency))) {
+                _context4.next = 14;
                 break;
               }
 
-              return _context4.abrupt("continue", 45);
+              return _context4.abrupt("continue", 43);
 
-            case 16:
+            case 14:
               amountOut = void 0;
-              _context4.prev = 17;
-              _context4.next = 21;
+              _context4.prev = 15;
+              _context4.next = 19;
               return pool.getOutputAmount(amountIn);
 
-            case 21:
+            case 19:
               _yield$pool$getOutput2 = _context4.sent;
               amountOut = _yield$pool$getOutput2[0];
-              _context4.next = 30;
+              _context4.next = 28;
               break;
 
-            case 25:
-              _context4.prev = 25;
-              _context4.t0 = _context4["catch"](17);
+            case 23:
+              _context4.prev = 23;
+              _context4.t0 = _context4["catch"](15);
 
               if (!_context4.t0.isInsufficientInputAmountError) {
-                _context4.next = 29;
+                _context4.next = 27;
                 break;
               }
 
-              return _context4.abrupt("continue", 45);
+              return _context4.abrupt("continue", 43);
 
-            case 29:
+            case 27:
               throw _context4.t0;
 
-            case 30:
+            case 28:
               if (!(amountOut.currency.isToken && amountOut.currency.equals(tokenOut))) {
-                _context4.next = 41;
+                _context4.next = 39;
                 break;
               }
 
               _context4.t1 = sortedInsert;
               _context4.t2 = bestTrades;
-              _context4.next = 35;
+              _context4.next = 33;
               return Trade.fromRoute(new Route([].concat(currentPools, [pool]), currencyAmountIn.currency, currencyOut), currencyAmountIn, TradeType.EXACT_INPUT);
 
-            case 35:
+            case 33:
               _context4.t3 = _context4.sent;
               _context4.t4 = maxNumResults;
               _context4.t5 = tradeComparator;
               (0, _context4.t1)(_context4.t2, _context4.t3, _context4.t4, _context4.t5);
-              _context4.next = 45;
+              _context4.next = 43;
               break;
 
-            case 41:
+            case 39:
               if (!(maxHops > 1 && pools.length > 1)) {
-                _context4.next = 45;
+                _context4.next = 43;
                 break;
               }
 
               poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length)); // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
 
-              _context4.next = 45;
+              _context4.next = 43;
               return Trade.bestTradeExactIn(poolsExcludingThisPool, currencyAmountIn, currencyOut, {
                 maxNumResults: maxNumResults,
                 maxHops: maxHops - 1
               }, [].concat(currentPools, [pool]), amountOut, bestTrades);
 
-            case 45:
+            case 43:
               i++;
-              _context4.next = 12;
+              _context4.next = 10;
               break;
 
-            case 48:
+            case 46:
               return _context4.abrupt("return", bestTrades);
 
-            case 49:
+            case 47:
             case "end":
               return _context4.stop();
           }
         }
-      }, _callee4, null, [[17, 25]]);
+      }, _callee4, null, [[15, 23]]);
     }));
 
     function bestTradeExactIn(_x8, _x9, _x10, _x11, _x12, _x13, _x14) {
@@ -2875,7 +2855,7 @@ var Trade = /*#__PURE__*/function () {
   function () {
     var _bestTradeExactOut = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee5(pools, currencyIn, currencyAmountOut, _temp2, // used in recursion.
     currentPools, nextAmountOut, bestTrades) {
-      var _ref3, _ref3$maxNumResults, maxNumResults, _ref3$maxHops, maxHops, chainId, amountOut, tokenIn, i, pool, amountIn, _yield$pool$getInputA, poolsExcludingThisPool;
+      var _ref3, _ref3$maxNumResults, maxNumResults, _ref3$maxHops, maxHops, amountOut, tokenIn, i, pool, amountIn, _yield$pool$getInputA, poolsExcludingThisPool;
 
       return runtime_1.wrap(function _callee5$(_context5) {
         while (1) {
@@ -2898,100 +2878,98 @@ var Trade = /*#__PURE__*/function () {
               !(pools.length > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'POOLS') : invariant(false) : void 0;
               !(maxHops > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'MAX_HOPS') : invariant(false) : void 0;
               !(currencyAmountOut === nextAmountOut || currentPools.length > 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'INVALID_RECURSION') : invariant(false) : void 0;
-              chainId = nextAmountOut.currency.isToken ? nextAmountOut.currency.chainId : currencyIn.isToken ? currencyIn.chainId : undefined;
-              !(chainId !== undefined) ? process.env.NODE_ENV !== "production" ? invariant(false, 'CHAIN_ID') : invariant(false) : void 0;
-              amountOut = wrappedCurrencyAmount(nextAmountOut, chainId);
-              tokenIn = wrappedCurrency(currencyIn, chainId);
+              amountOut = nextAmountOut.wrapped;
+              tokenIn = currencyIn.wrapped;
               i = 0;
 
-            case 12:
+            case 10:
               if (!(i < pools.length)) {
-                _context5.next = 48;
+                _context5.next = 46;
                 break;
               }
 
               pool = pools[i]; // pool irrelevant
 
-              if (!(!currencyEquals(pool.token0, amountOut.currency) && !currencyEquals(pool.token1, amountOut.currency))) {
-                _context5.next = 16;
+              if (!(!pool.token0.equals(amountOut.currency) && !pool.token1.equals(amountOut.currency))) {
+                _context5.next = 14;
                 break;
               }
 
-              return _context5.abrupt("continue", 45);
+              return _context5.abrupt("continue", 43);
 
-            case 16:
+            case 14:
               amountIn = void 0;
-              _context5.prev = 17;
-              _context5.next = 21;
+              _context5.prev = 15;
+              _context5.next = 19;
               return pool.getInputAmount(amountOut);
 
-            case 21:
+            case 19:
               _yield$pool$getInputA = _context5.sent;
               amountIn = _yield$pool$getInputA[0];
-              _context5.next = 30;
+              _context5.next = 28;
               break;
 
-            case 25:
-              _context5.prev = 25;
-              _context5.t0 = _context5["catch"](17);
+            case 23:
+              _context5.prev = 23;
+              _context5.t0 = _context5["catch"](15);
 
               if (!_context5.t0.isInsufficientReservesError) {
-                _context5.next = 29;
+                _context5.next = 27;
                 break;
               }
 
-              return _context5.abrupt("continue", 45);
+              return _context5.abrupt("continue", 43);
 
-            case 29:
+            case 27:
               throw _context5.t0;
 
-            case 30:
-              if (!currencyEquals(amountIn.currency, tokenIn)) {
-                _context5.next = 41;
+            case 28:
+              if (!amountIn.currency.equals(tokenIn)) {
+                _context5.next = 39;
                 break;
               }
 
               _context5.t1 = sortedInsert;
               _context5.t2 = bestTrades;
-              _context5.next = 35;
+              _context5.next = 33;
               return Trade.fromRoute(new Route([pool].concat(currentPools), currencyIn, currencyAmountOut.currency), currencyAmountOut, TradeType.EXACT_OUTPUT);
 
-            case 35:
+            case 33:
               _context5.t3 = _context5.sent;
               _context5.t4 = maxNumResults;
               _context5.t5 = tradeComparator;
               (0, _context5.t1)(_context5.t2, _context5.t3, _context5.t4, _context5.t5);
-              _context5.next = 45;
+              _context5.next = 43;
               break;
 
-            case 41:
+            case 39:
               if (!(maxHops > 1 && pools.length > 1)) {
-                _context5.next = 45;
+                _context5.next = 43;
                 break;
               }
 
               poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length)); // otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
 
-              _context5.next = 45;
+              _context5.next = 43;
               return Trade.bestTradeExactOut(poolsExcludingThisPool, currencyIn, currencyAmountOut, {
                 maxNumResults: maxNumResults,
                 maxHops: maxHops - 1
               }, [pool].concat(currentPools), amountIn, bestTrades);
 
-            case 45:
+            case 43:
               i++;
-              _context5.next = 12;
+              _context5.next = 10;
               break;
 
-            case 48:
+            case 46:
               return _context5.abrupt("return", bestTrades);
 
-            case 49:
+            case 47:
             case "end":
               return _context5.stop();
           }
         }
-      }, _callee5, null, [[17, 25]]);
+      }, _callee5, null, [[15, 23]]);
     }));
 
     function bestTradeExactOut(_x15, _x16, _x17, _x18, _x19, _x20, _x21) {
@@ -3113,16 +3091,16 @@ var NonfungiblePositionManager = /*#__PURE__*/function (_SelfPermit) {
 
     var value = toHex(0);
 
-    if (options.useEther) {
-      var weth = WETH9[position.pool.chainId];
-      !(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth))) ? process.env.NODE_ENV !== "production" ? invariant(false, 'NO_WETH') : invariant(false) : void 0;
-      var wethValue = position.pool.token0.equals(weth) ? amount0Desired : amount1Desired; // we only need to refund if we're actually sending ETH
+    if (options.useNative) {
+      var wrapped = options.useNative.wrapped;
+      !(position.pool.token0.equals(wrapped) || position.pool.token1.equals(wrapped)) ? process.env.NODE_ENV !== "production" ? invariant(false, 'NO_WETH') : invariant(false) : void 0;
+      var wrappedValue = position.pool.token0.equals(wrapped) ? amount0Desired : amount1Desired; // we only need to refund if we're actually sending ETH
 
-      if (JSBI.greaterThan(wethValue, ZERO)) {
+      if (JSBI.greaterThan(wrappedValue, ZERO)) {
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'));
       }
 
-      value = toHex(wethValue);
+      value = toHex(wrappedValue);
     }
 
     return {
@@ -3134,7 +3112,7 @@ var NonfungiblePositionManager = /*#__PURE__*/function (_SelfPermit) {
   NonfungiblePositionManager.encodeCollect = function encodeCollect(options) {
     var calldatas = [];
     var tokenId = toHex(options.tokenId);
-    var involvesETH = options.expectedCurrencyOwed0.currency.isEther || options.expectedCurrencyOwed1.currency.isEther;
+    var involvesETH = options.expectedCurrencyOwed0.currency.isNative || options.expectedCurrencyOwed1.currency.isNative;
     var recipient = validateAndParseAddress(options.recipient); // collect
 
     calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [{
@@ -3145,9 +3123,9 @@ var NonfungiblePositionManager = /*#__PURE__*/function (_SelfPermit) {
     }]));
 
     if (involvesETH) {
-      var ethAmount = options.expectedCurrencyOwed0.currency.isEther ? options.expectedCurrencyOwed0.quotient : options.expectedCurrencyOwed1.quotient;
-      var token = options.expectedCurrencyOwed0.currency.isEther ? options.expectedCurrencyOwed1.currency : options.expectedCurrencyOwed0.currency;
-      var tokenAmount = options.expectedCurrencyOwed0.currency.isEther ? options.expectedCurrencyOwed1.quotient : options.expectedCurrencyOwed0.quotient;
+      var ethAmount = options.expectedCurrencyOwed0.currency.isNative ? options.expectedCurrencyOwed0.quotient : options.expectedCurrencyOwed1.quotient;
+      var token = options.expectedCurrencyOwed0.currency.isNative ? options.expectedCurrencyOwed1.currency : options.expectedCurrencyOwed0.currency;
+      var tokenAmount = options.expectedCurrencyOwed0.currency.isNative ? options.expectedCurrencyOwed1.quotient : options.expectedCurrencyOwed0.quotient;
       calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient]));
       calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('sweepToken', [token.address, toHex(tokenAmount), recipient]));
     }
@@ -3207,8 +3185,8 @@ var NonfungiblePositionManager = /*#__PURE__*/function (_SelfPermit) {
     calldatas.push.apply(calldatas, NonfungiblePositionManager.encodeCollect(_extends({
       tokenId: options.tokenId,
       // add the underlying value to the expected currency already owed
-      expectedCurrencyOwed0: expectedCurrencyOwed0.add(expectedCurrencyOwed0.currency.isEther ? CurrencyAmount.ether(amount0Min) : CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency, amount0Min)),
-      expectedCurrencyOwed1: expectedCurrencyOwed1.add(expectedCurrencyOwed1.currency.isEther ? CurrencyAmount.ether(amount1Min) : CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency, amount1Min))
+      expectedCurrencyOwed0: expectedCurrencyOwed0.add(CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency, amount0Min)),
+      expectedCurrencyOwed1: expectedCurrencyOwed1.add(CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency, amount1Min))
     }, rest)));
 
     if (options.liquidityPercentage.equalTo(ONE)) {
@@ -3261,13 +3239,13 @@ var SwapRouter = /*#__PURE__*/function (_SelfPermit) {
     var deadline = toHex(options.deadline);
     var amountIn = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient);
     var amountOut = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient);
-    var value = trade.inputAmount.currency.isEther ? amountIn : toHex(0); // flag for whether the trade is single hop or not
+    var value = trade.inputAmount.currency.isNative ? amountIn : toHex(0); // flag for whether the trade is single hop or not
 
     var singleHop = trade.route.pools.length === 1; // flag for whether a refund needs to happen
 
-    var mustRefund = trade.inputAmount.currency.isEther && trade.tradeType === TradeType.EXACT_OUTPUT; // flags for whether funds should be send first to the router
+    var mustRefund = trade.inputAmount.currency.isNative && trade.tradeType === TradeType.EXACT_OUTPUT; // flags for whether funds should be send first to the router
 
-    var outputIsEther = trade.outputAmount.currency.isEther;
+    var outputIsEther = trade.outputAmount.currency.isNative;
     var routerMustCustody = outputIsEther || !!options.fee;
 
     if (singleHop) {

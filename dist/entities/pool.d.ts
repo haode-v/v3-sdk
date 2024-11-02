@@ -1,4 +1,4 @@
-import { BigintIsh, ChainId, Price, Token, CurrencyAmount } from '@uniswap/sdk-core';
+import { BigintIsh, Price, Token, CurrencyAmount } from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 import { FeeAmount } from '../constants';
 import { Tick, TickConstructorArgs } from './tick';
@@ -49,7 +49,7 @@ export declare class Pool {
     /**
      * Returns the chain ID of the tokens in the pool.
      */
-    get chainId(): ChainId | number;
+    get chainId(): number;
     /**
      * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
      * @param inputAmount the input amount for which to quote the output amount

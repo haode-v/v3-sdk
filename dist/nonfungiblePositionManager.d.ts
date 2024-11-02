@@ -1,4 +1,4 @@
-import { BigintIsh, Percent, CurrencyAmount, Currency } from '@uniswap/sdk-core';
+import { BigintIsh, Percent, CurrencyAmount, Currency, NativeCurrency } from '@uniswap/sdk-core';
 import { Position } from './entities/position';
 import { MethodParameters } from './utils/calldata';
 import { Interface } from '@ethersproject/abi';
@@ -34,7 +34,7 @@ export interface CommonAddLiquidityOptions {
     /**
      * Whether to spend ether. If true, one of the pool tokens must be WETH, by default false
      */
-    useEther?: boolean;
+    useNative?: NativeCurrency;
     /**
      * The optional permit parameters for spending token0
      */
